@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #05070a;
-            --accent: #00f2ff;
-            --ui-bg: rgba(10, 15, 25, 0.7);
-            --text: #e0e6ed;
+            --bg-bright: #a5d8ff;
+            --accent: #ff922b;
+            --ui-bg: rgba(255, 255, 255, 0.85);
+            --text: #212529;
         }
 
         body,
@@ -23,7 +23,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: var(--bg-dark);
+            background-color: var(--bg-bright);
             font-family: 'Outfit', sans-serif;
             color: var(--text);
         }
@@ -52,16 +52,17 @@
         .card {
             background: var(--ui-bg);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             padding: 20px;
             border-radius: 16px;
             pointer-events: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
             margin: 0;
             font-size: 1.4rem;
-            background: linear-gradient(90deg, #00f2ff, #7000ff);
+            background: linear-gradient(90deg, #ff922b, #f06595);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -71,8 +72,9 @@
 
         .header p {
             margin: 5px 0 0;
-            opacity: 0.6;
+            opacity: 0.8;
             font-size: 0.8rem;
+            color: #495057;
         }
 
         .hud {
@@ -81,30 +83,32 @@
             left: 20px;
             z-index: 10;
             display: flex;
-            gap: 20px;
+            gap: 15px;
             pointer-events: auto;
         }
 
         .stat-box {
             background: var(--ui-bg);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 25px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 12px 20px;
             border-radius: 12px;
-            min-width: 120px;
+            min-width: 100px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
 
         .label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
-            opacity: 0.5;
-            margin-bottom: 5px;
+            opacity: 0.6;
+            margin-bottom: 3px;
+            font-weight: 600;
         }
 
         .value {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: var(--accent);
+            color: #ff922b;
         }
 
         .controls {
@@ -117,27 +121,46 @@
             pointer-events: auto;
         }
 
+        .keyboard-hint {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: #495057;
+            text-align: right;
+            pointer-events: none;
+        }
+
         button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            color: #495057;
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             font-family: inherit;
+            font-weight: 500;
         }
 
         button:hover {
-            background: var(--accent);
-            color: black;
-            border-color: var(--accent);
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         button.primary {
-            background: var(--accent);
-            color: black;
+            background: #ff922b;
+            color: white;
+            border-color: #ff922b;
             font-weight: 600;
+        }
+
+        button.primary:hover {
+            background: #f76707;
         }
 
         .loading-screen {
@@ -146,7 +169,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-dark);
+            background: #fff;
             z-index: 100;
             display: flex;
             flex-direction: column;
@@ -158,8 +181,8 @@
         .spinner {
             width: 50px;
             height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--accent);
+            border: 3px solid #f1f3f5;
+            border-top-color: #ff922b;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -176,23 +199,28 @@
 
     <div id="loading" class="loading-screen">
         <div class="spinner"></div>
-        <p style="margin-top: 20px; opacity: 0.6;">Summoning Nature & Train...</p>
+        <p style="margin-top: 20px; color: #868e96;">Good Morning! Growing Trees & Building Houses...</p>
     </div>
 
     <div id="canvas-container"></div>
 
     <div class="overlay">
         <div class="header card">
-            <h1>3D NATURE VOYAGE</h1>
-            <p>Durable Door Oracle | Antigravity Sky</p>
+            <h1>MORNING VOYAGE</h1>
+            <p>Durable Door Oracle | Antigravity Sky 100km+</p>
         </div>
     </div>
 
     <div class="controls">
-        <button id="camera-btn" onclick="toggleCamera()">🎥 Toggle View</button>
+        <button id="camera-btn" onclick="toggleCamera()">🎥 Free View (Orbit)</button>
         <button id="start-btn" class="primary" onclick="toggleAnimation()">🚀 START VOYAGE</button>
         <button onclick="location.reload()">🔄 RESET</button>
         <button onclick="location.href='index.html'">🔙 2D Map</button>
+    </div>
+
+    <div class="keyboard-hint">
+        🎮 <b>Controls:</b> WASD to Move | Scroll to Zoom<br>
+        View: <span id="view-mode-indicator">Chase View</span>
     </div>
 
     <div class="hud">
@@ -225,71 +253,64 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- Configuration & State ---
         let scene, camera, renderer, controls;
-        let train, particles;
+        let train, pivot;
         let pathPoints = [];
         let csvData = [];
         let currentIndex = 0;
         let isAnimating = false;
-        let cameraMode = 'chase'; // 'chase' or 'orbit'
+        let cameraMode = 'chase';
 
-        const SCALE = 2000; // Scaling GPS to 3D units
-        const TRAIN_SPEED = 2; // Steps per frame
+        const SCALE = 2500;
+        const TRAIN_SPEED_VAL = 1.5; // Adjusted for 150km/h feel
 
-        // --- Initialized App ---
+        const keyStates = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
+
         init();
 
         function init() {
-            // Scene Setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x05070a);
-            scene.fog = new THREE.FogExp2(0x05070a, 0.005);
+            scene.background = new THREE.Color(0xa5d8ff); // Morning Blue
+            scene.fog = new THREE.FogExp2(0xd6eaff, 0.003);
 
-            // Camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 10, 20);
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 20, 40);
 
-            // Renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // Controls
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
+            controls.maxDistance = 300;
+            controls.minDistance = 2;
 
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            // Lighting: Sunny Morning
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
 
-            const moonLight = new THREE.DirectionalLight(0x4cc9f0, 1.2);
-            moonLight.position.set(50, 100, 50);
-            scene.add(moonLight);
+            const sunLight = new THREE.DirectionalLight(0xfff4e6, 1.5);
+            sunLight.position.set(100, 200, 100);
+            sunLight.castShadow = true;
+            scene.add(sunLight);
 
-            // Load Data
             loadCSV();
 
-            // Handle Resize
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', (e) => { if (keyStates.hasOwnProperty(e.code)) keyStates[e.code] = true; });
+            window.addEventListener('keyup', (e) => { if (keyStates.hasOwnProperty(e.code)) keyStates[e.code] = false; });
 
             animateScene();
         }
 
         async function loadCSV() {
             const res = await fetch('travel-phitsanulok.csv');
-            const csvText = await res.text();
-
-            Papa.parse(csvText, {
+            const data = await res.text();
+            Papa.parse(data, {
                 header: true,
                 dynamicTyping: true,
-                skipEmptyLines: true,
                 complete: (results) => {
                     csvData = results.data.filter(d => d.lat && d.lon);
                     processPath();
@@ -301,104 +322,94 @@
         }
 
         function processPath() {
-            // Find base coordinates to center the scene
-            const centerLat = 17.6; // Approximated center of the trip
+            const centerLat = 17.6;
             const centerLon = 99.8;
 
             pathPoints = csvData.map(d => {
-                const x = (d.lon - centerLon) * (SCALE * 1.5);
+                const x = (d.lon - centerLon) * SCALE * 1.5;
                 const z = -(d.lat - centerLat) * SCALE;
                 return new THREE.Vector3(x, 0, z);
             });
 
-            // Draw Railway Track
             const curve = new THREE.CatmullRomCurve3(pathPoints);
-            const tubeGeometry = new THREE.TubeGeometry(curve, 300, 0.1, 8, false);
-            const tubeMaterial = new THREE.MeshStandardMaterial({
-                color: 0x4cc9f0,
-                emissive: 0x4cc9f0,
-                emissiveIntensity: 0.5
-            });
-            const track = new THREE.Mesh(tubeGeometry, tubeMaterial);
-            scene.add(track);
+            const tubeGeo = new THREE.TubeGeometry(curve, 400, 0.2, 8, false);
+            const tubeMat = new THREE.MeshStandardMaterial({ color: 0x495057 });
+            scene.add(new THREE.Mesh(tubeGeo, tubeMat));
 
-            // Create Train
-            const trainGroup = new THREE.Group();
+            // Train Model (Upgrade)
+            train = new THREE.Group();
 
-            // Main Body
-            const bodyGeo = new THREE.BoxGeometry(0.8, 0.6, 2);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            trainGroup.add(body);
+            const engineGeo = new THREE.BoxGeometry(1.2, 0.8, 3);
+            const engineMat = new THREE.MeshStandardMaterial({ color: 0xff922b });
+            const engine = new THREE.Mesh(engineGeo, engineMat);
+            train.add(engine);
 
-            // Glowing Windows
-            const winGeo = new THREE.BoxGeometry(0.85, 0.1, 1.5);
-            const winMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 2 });
-            const win = new THREE.Mesh(winGeo, winMat);
-            win.position.y = 0.1;
-            trainGroup.add(win);
+            const cabinGeo = new THREE.BoxGeometry(1, 0.4, 2);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.1 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.y = 0.5;
+            train.add(cabin);
 
-            // Headlight
-            const light = new THREE.PointLight(0xffffff, 5, 10);
-            light.position.set(0, 0, 1.1);
-            trainGroup.add(light);
-
-            train = trainGroup;
             scene.add(train);
-
-            // Set initial position
             train.position.copy(pathPoints[0]);
         }
 
         function buildEnvironment() {
-            // Soil/Ground Texture (Procedural Plane)
-            const groundGeo = new THREE.PlaneGeometry(500, 500, 32, 32);
-            const groundMat = new THREE.MeshStandardMaterial({
-                color: 0x1a120b, // Dark Soil
-                roughness: 0.8
-            });
+            // Ground
+            const groundGeo = new THREE.PlaneGeometry(1000, 1000);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x86b170 }); // Grass/Summer Soil
             const ground = new THREE.Mesh(groundGeo, groundMat);
             ground.rotation.x = -Math.PI / 2;
-            ground.position.y = -0.5;
+            ground.position.y = -0.6;
             scene.add(ground);
 
-            // SCATTER NATURE: Trees and Mountains
-            const treeGeo = new THREE.ConeGeometry(0.5, 2, 8);
-            const treeMat = new THREE.MeshStandardMaterial({ color: 0x0b2410 });
-
-            const mountainGeo = new THREE.ConeGeometry(10, 20, 4);
-            const mountainMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-
-            for (let i = 0; i < 500; i++) {
-                // Random position
-                const rx = (Math.random() - 0.5) * 400;
-                const rz = (Math.random() - 0.5) * 400;
-
-                // Avoid too close to track center
-                if (Math.abs(rx) < 5 && Math.abs(rz) < 10) continue;
-
-                if (Math.random() > 0.05) {
-                    const tree = new THREE.Mesh(treeGeo, treeMat);
-                    tree.position.set(rx, 0.5, rz);
-                    tree.scale.setScalar(0.5 + Math.random());
-                    scene.add(tree);
-                } else {
-                    const mtn = new THREE.Mesh(mountainGeo, mountainMat);
-                    mtn.position.set(rx, 5, rz);
-                    mtn.rotation.y = Math.random() * Math.PI;
-                    scene.add(mtn);
-                }
+            // Rivers
+            const riverMat = new THREE.MeshStandardMaterial({ color: 0x339af0, transparent: true, opacity: 0.8 });
+            for (let i = 0; i < 5; i++) {
+                const river = new THREE.Mesh(new THREE.PlaneGeometry(50, 1000), riverMat);
+                river.rotation.x = -Math.PI / 2;
+                river.position.set((Math.random() - 0.5) * 800, -0.55, 0);
+                scene.add(river);
             }
 
-            // Simple Bridge Simulation
-            for (let i = 10; i < pathPoints.length - 10; i += 50) {
-                const p = pathPoints[i];
-                const bridgeGeo = new THREE.BoxGeometry(3, 0.2, 5);
-                const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-                const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
-                bridge.position.copy(p);
-                bridge.position.y = -0.1;
-                scene.add(bridge);
+            // Scatter Objects (Houses, Trees, Mountains)
+            const treeGeo = new THREE.ConeGeometry(0.8, 4, 8);
+            const treeMat = new THREE.MeshStandardMaterial({ color: 0x2b8a3e });
+
+            const houseGeo = new THREE.BoxGeometry(4, 3, 4);
+            const roofGeo = new THREE.ConeGeometry(4, 3, 4);
+            const houseMat = new THREE.MeshStandardMaterial({ color: 0xfff9db });
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xc92a2a });
+
+            const mtnGeo = new THREE.ConeGeometry(30, 50, 6);
+            const mtnMat = new THREE.MeshStandardMaterial({ color: 0xadb5bd });
+
+            for (let i = 0; i < 1200; i++) {
+                const pos = new THREE.Vector3((Math.random() - 0.5) * 800, 0, (Math.random() - 0.5) * 800);
+                if (pos.length() < 10) continue; // Keep track clear
+
+                const rand = Math.random();
+                if (rand < 0.7) { // Tree
+                    const t = new THREE.Mesh(treeGeo, treeMat);
+                    t.position.set(pos.x, 2, pos.z);
+                    t.scale.setScalar(0.5 + Math.random());
+                    scene.add(t);
+                } else if (rand < 0.95) { // House
+                    const hGroup = new THREE.Group();
+                    const h = new THREE.Mesh(houseGeo, houseMat);
+                    h.position.y = 1.5;
+                    const r = new THREE.Mesh(roofGeo, roofMat);
+                    r.position.y = 4.5;
+                    r.rotation.y = Math.PI / 4;
+                    hGroup.add(h, r);
+                    hGroup.position.set(pos.x, 0, pos.z);
+                    scene.add(hGroup);
+                } else { // Mountain
+                    const m = new THREE.Mesh(mtnGeo, mtnMat);
+                    m.position.set(pos.x, 25, pos.z);
+                    m.scale.y = 0.5 + Math.random();
+                    scene.add(m);
+                }
             }
         }
 
@@ -406,41 +417,46 @@
             requestAnimationFrame(animateScene);
 
             if (isAnimating && pathPoints.length > 0) {
-                currentIndex = (currentIndex + TRAIN_SPEED) % pathPoints.length;
-                const targetPos = pathPoints[currentIndex];
-
-                // Move Train
-                train.position.copy(targetPos);
-
-                // Look Ahead
-                const nextPoint = pathPoints[(currentIndex + 2) % pathPoints.length];
-                train.lookAt(nextPoint);
+                currentIndex = (currentIndex + TRAIN_SPEED_VAL) % pathPoints.length;
+                train.position.copy(pathPoints[Math.floor(currentIndex)]);
+                const lookAtIdx = (Math.floor(currentIndex) + 5) % pathPoints.length;
+                train.lookAt(pathPoints[lookAtIdx]);
 
                 // Update HUD
-                const data = csvData[currentIndex];
-                document.getElementById('hud-loc').innerText = data.locality || 'Northern Track';
-                document.getElementById('hud-speed').innerText = '200 km/h';
+                const data = csvData[Math.floor(currentIndex)];
+                document.getElementById('hud-loc').innerText = (data.locality || 'Expedition Path').substring(0, 15);
+                document.getElementById('hud-speed').innerText = '150 km/h';
                 document.getElementById('hud-batt').innerText = data.battery + '%';
 
-                // Camera Modes
                 if (cameraMode === 'chase') {
-                    const offset = new THREE.Vector3(0, 5, -10);
+                    const offset = new THREE.Vector3(0, 8, -15);
                     offset.applyQuaternion(train.quaternion);
-                    const camPos = train.position.clone().add(offset);
-                    camera.position.lerp(camPos, 0.1);
+                    camera.position.lerp(train.position.clone().add(offset), 0.1);
                     camera.lookAt(train.position);
                 }
             }
+
+            // Keyboard Movement (WASD)
+            const moveSpeed = 0.5;
+            if (keyStates.KeyW) camera.translateZ(-moveSpeed);
+            if (keyStates.KeyS) camera.translateZ(moveSpeed);
+            if (keyStates.KeyA) camera.translateX(-moveSpeed);
+            if (keyStates.KeyD) camera.translateX(moveSpeed);
 
             controls.update();
             renderer.render(scene, camera);
         }
 
-        // --- Global Control Functions ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
         window.toggleAnimation = () => {
             isAnimating = !isAnimating;
             const btn = document.getElementById('start-btn');
-            btn.innerText = isAnimating ? '⏸ PAUSE VOYAGE' : '🚀 RESUME VOYAGE';
+            btn.innerText = isAnimating ? '⏸ PAUSE VOYAGE' : '🚀 START VOYAGE';
             btn.classList.toggle('primary', !isAnimating);
         };
 
@@ -448,9 +464,10 @@
             cameraMode = cameraMode === 'chase' ? 'orbit' : 'chase';
             controls.enabled = (cameraMode === 'orbit');
             document.getElementById('camera-btn').innerText =
-                cameraMode === 'chase' ? '🎥 Chase View' : '🌐 Orbit View';
+                cameraMode === 'chase' ? '🎥 Free View (Orbit)' : '🌐 Chase View';
+            document.getElementById('view-mode-indicator').innerText =
+                cameraMode === 'chase' ? 'Chase View' : 'Orbit/Free View';
         };
-
     </script>
 </body>
 
