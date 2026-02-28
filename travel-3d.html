@@ -293,8 +293,8 @@
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa5d8ff);
-            scene.fog = new THREE.FogExp2(0xd6eaff, 0.002);
+            scene.background = new THREE.Color(0x74c0fc); // Deeper Blue
+            scene.fog = new THREE.FogExp2(0x74c0fc, 0.0015);
 
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 3000);
 
@@ -302,7 +302,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.toneMapping = THREE.ReinhardToneMapping;
-            renderer.toneMappingExposure = 0.8; // Lower exposure
+            renderer.toneMappingExposure = 0.5; // Much lower
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
             // Post Processing
@@ -331,10 +331,10 @@
 
         function renderScene() {
             const renderPass = new RenderPass(scene, camera);
-            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.4, 0.85);
-            bloomPass.threshold = 0.25;
-            bloomPass.strength = 0.6; // Subtle bloom
-            bloomPass.radius = 0.4;
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.2, 0.4, 0.85);
+            bloomPass.threshold = 0.4;
+            bloomPass.strength = 0.2; // Minimal bloom
+            bloomPass.radius = 0.2;
 
             composer = new EffectComposer(renderer);
             composer.addPass(renderPass);
@@ -422,7 +422,7 @@
             // Ground
             const ground = new THREE.Mesh(
                 new THREE.PlaneGeometry(2000, 2000),
-                new THREE.MeshStandardMaterial({ color: 0x86b170 })
+                new THREE.MeshStandardMaterial({ color: 0x5c940d }) // Darker Green
             );
             ground.rotation.x = -Math.PI / 2;
             ground.position.y = -0.8;
