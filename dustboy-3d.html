@@ -365,6 +365,29 @@
         let particles, particleMaterial;
         let bars = [];
         let cubes = [];
+        let labels = [];
+
+        function createLabel(text, color) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 64;
+
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = 'Bold 40px Outfit';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 128, 32);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(8, 2, 1);
+            return sprite;
+        }
 
         // UI Updates
         const updateUI = (data) => {
@@ -469,6 +492,8 @@
 
         function createDataStructures() {
             const geo = new THREE.BoxGeometry(4, 1, 4);
+            const names = ['PM2.5', 'PM10', 'TEMP', 'HUMID'];
+
             for (let i = 0; i < 4; i++) {
                 const mat = new THREE.MeshStandardMaterial({
                     color: 0x00f2ff,
@@ -483,6 +508,12 @@
                 cube.position.x = (i - 1.5) * 12;
                 scene.add(cube);
                 bars.push(cube);
+
+                // Add label
+                const label = createLabel(names[i], '#ffffff');
+                label.position.set(cube.position.x, 2, 0);
+                scene.add(label);
+                labels.push(label);
 
                 // Add a glow ring under each bar
                 const ringGeo = new THREE.TorusGeometry(3, 0.05, 16, 100);
@@ -506,6 +537,12 @@
                 bar.position.y = bar.scale.y / 2 - 5;
                 bar.material.color.lerp(color, 0.1);
                 bar.material.emissive.lerp(color, 0.1);
+
+                // Update label position
+                if (labels[i]) {
+                    labels[i].position.y = bar.position.y + bar.scale.y / 2 + 4;
+                    labels[i].material.color.lerp(color, 0.1);
+                }
             });
 
             // Adjust particle density based on PM2.5
