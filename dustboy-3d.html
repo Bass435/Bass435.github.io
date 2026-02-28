@@ -361,21 +361,32 @@
 
         // UI Updates
         const updateUI = (data) => {
-            document.getElementById('pm25').innerHTML = `${data.pm25}<span class="unit">µg/m³</span>`;
-            document.getElementById('pm10').innerHTML = `${data.pm10}<span class="unit">µg/m³</span>`;
-            document.getElementById('temp').innerHTML = `${data.temp}<span class="unit">°C</span>`;
-            document.getElementById('hum').innerHTML = `${data.hum}<span class="unit">%</span>`;
-            document.getElementById('loc').innerText = data.nickname || 'DUSTBOY NODE';
+            const pm25 = data.pm25 || 0;
+            const pm10 = data.pm10 || 0;
+            const temp = data.temp || 0;
+            const hum = data.humid || 0;
+
+            document.getElementById('pm25').innerHTML = `${pm25}<span class="unit">µg/m³</span>`;
+            document.getElementById('pm10').innerHTML = `${pm10}<span class="unit">µg/m³</span>`;
+            document.getElementById('temp').innerHTML = `${typeof temp === 'number' ? temp.toFixed(1) : temp}<span class="unit">°C</span>`;
+            document.getElementById('hum').innerHTML = `${typeof hum === 'number' ? hum.toFixed(1) : hum}<span class="unit">%</span>`;
+            document.getElementById('loc').innerText = data.name || 'DUSTBOY NODE';
             document.getElementById('time').innerText = new Date().toLocaleTimeString();
 
-            // Dynamic Styling based on PM2.5
-            let color = '#00ffa2'; // Good
-            if (data.pm25 > 50) color = '#ffcc00'; // Warning
-            if (data.pm25 > 100) color = '#ff0055'; // Danger
-
+            // Thailand AQI Colors
+            const color = pmColor(pm25);
             document.getElementById('pm25').style.color = color;
+
             update3D(data, color);
         };
+
+        // Color by PM2.5 level (Thailand AQI)
+        function pmColor(pm25) {
+            if (pm25 <= 25) return '#3fb950';  // Good
+            if (pm25 <= 50) return '#fbbf24';  // Moderate
+            if (pm25 <= 100) return '#f87171'; // Unhealthy
+            return '#c084fc';                  // Hazardous
+        }
 
         init();
 
@@ -406,7 +417,7 @@
             createGridLines();
             createDataStructures();
 
-            const light = new THREE.PointLight(0xffffff, 50, 100);
+            const light = new THREE.PointLight(0xffffff, 100, 100);
             light.position.set(10, 20, 10);
             scene.add(light);
             scene.add(new THREE.AmbientLight(0x404040));
@@ -418,13 +429,16 @@
             animate();
 
             setTimeout(() => {
-                document.getElementById('loading').style.opacity = '0';
-                setTimeout(() => document.getElementById('loading').style.display = 'none', 1000);
+                const loader = document.getElementById('loading');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 1000);
+                }
             }, 2000);
         }
 
         function createParticles() {
-            const count = 1000;
+            const count = 1500;
             const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
             for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 100;
@@ -432,27 +446,31 @@
 
             particleMaterial = new THREE.PointsMaterial({
                 color: 0x00f2ff,
-                size: 0.2,
+                size: 0.15,
                 transparent: true,
-                opacity: 0.5
+                opacity: 0.3
             });
             particles = new THREE.Points(geo, particleMaterial);
             scene.add(particles);
         }
 
         function createGridLines() {
-            const grid = new THREE.GridHelper(100, 20, 0x333333, 0x111111);
+            const grid = new THREE.GridHelper(100, 40, 0x333333, 0x111111);
             grid.position.y = -5;
             scene.add(grid);
         }
 
         function createDataStructures() {
-            // Visualize 4 metrics
             const geo = new THREE.BoxGeometry(4, 1, 4);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 0.5 });
-
             for (let i = 0; i < 4; i++) {
-                const cube = new THREE.Mesh(geo, mat.clone());
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0x00f2ff,
+                    emissive: 0x00f2ff,
+                    emissiveIntensity: 0.5,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const cube = new THREE.Mesh(geo, mat);
                 cube.position.x = (i - 1.5) * 10;
                 scene.add(cube);
                 bars.push(cube);
@@ -461,53 +479,70 @@
 
         function update3D(data, hexColor) {
             const color = new THREE.Color(hexColor);
-            const values = [data.pm25, data.pm10, data.temp, data.hum];
+            const values = [data.pm25, data.pm10, data.temp, data.humid];
 
             bars.forEach((bar, i) => {
-                const targetScale = Math.max(0.1, values[i] / (i < 2 ? 10 : 5));
-                bar.scale.y = THREE.MathUtils.lerp(bar.scale.y, targetScale, 0.1);
+                const targetScale = Math.max(0.1, (values[i] || 0) / (i < 2 ? 8 : 4));
+                bar.scale.y = THREE.MathUtils.lerp(bar.scale.y, targetScale, 0.05);
                 bar.position.y = bar.scale.y / 2 - 5;
                 bar.material.color.lerp(color, 0.1);
                 bar.material.emissive.lerp(color, 0.1);
             });
 
             // Adjust particle density based on PM2.5
-            particleMaterial.opacity = Math.min(0.8, data.pm25 / 150);
+            particleMaterial.opacity = Math.min(0.8, (data.pm25 || 0) / 100);
             particleMaterial.color.lerp(color, 0.05);
         }
 
         function connectMQTT() {
             const client = mqtt.connect('wss://dustboy-wss-bridge.laris.workers.dev/mqtt');
+
             client.on('connect', () => {
-                console.log('Connected to DustBoy MQTT');
+                console.log('Connected to DustBoy MQTT!');
                 client.subscribe('DUSTBOY/+/+/+/status');
             });
 
             client.on('message', (topic, message) => {
+                const raw = message.toString();
+                console.log(topic, raw);
                 try {
-                    const data = JSON.parse(message.toString());
-                    // Mapping expected DustBoy fields
-                    const dustData = {
-                        pm25: data.pm25 || data.pm2_5 || 0,
-                        pm10: data.pm10 || 0,
-                        temp: data.temp || data.temperature || 0,
-                        hum: data.hum || data.humidity || 0,
-                        nickname: data.nickname || data.nickname_en || 'PSRU STATION'
-                    };
-                    updateUI(dustData);
+                    const sensorData = parseDust(topic, raw);
+                    updateUI(sensorData);
                 } catch (e) {
                     console.warn("MQTT Parse Error", e);
                 }
             });
 
-            // Mock data for initial visual or if MQTT fails
+            client.on('error', (e) => console.log('MQTT Error:', e));
+            client.on('offline', () => console.log('MQTT Offline'));
+
+            // Mock fallback
             setTimeout(() => {
-                if (document.getElementById('pm25').innerText === '--µg/m³') {
-                    console.log("Using Mock Data");
-                    const mock = { pm25: 45, pm10: 62, temp: 32.5, hum: 45, nickname: 'VIRTUAL STATION X-1' };
-                    updateUI(mock);
+                const pmVal = document.getElementById('pm25').innerText;
+                if (pmVal.includes('--') || pmVal === '0µg/m³') {
+                    console.log("Using Mock Fallback");
+                    updateUI({ name: 'VIRTUAL STATION X-1', pm25: 18, pm10: 32, temp: 28.5, humid: 55 });
                 }
-            }, 5000);
+            }, 8000);
+        }
+
+        function parseDust(topic, raw) {
+            const obj = JSON.parse(raw);
+            const parts = topic.split('/');
+            const isModelT = parts[1] === 'Model-T';
+
+            let pm25, pm10, temp, humid, name;
+            if (isModelT) {
+                pm25 = obj.pm2_5; pm10 = obj.pm10;
+                temp = obj.temp; humid = obj.humid;
+                name = obj.nickname || parts[2];
+            } else {
+                const d = obj.d || obj;
+                pm25 = d.pm2_5; pm10 = d.pm10;
+                temp = d.temperature_c; humid = d.humidity_rh;
+                name = d.myName || parts[3];
+            }
+            return { name, pm25, pm10, temp, humid };
         }
 
         function animate() {
