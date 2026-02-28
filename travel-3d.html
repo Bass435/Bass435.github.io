@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D GPS Voyage: Antigravity Nature | Durable Door Oracle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #05070a;
+            --accent: #00f2ff;
+            --ui-bg: rgba(10, 15, 25, 0.7);
+            --text: #e0e6ed;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text);
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Overlay UI */
+        .overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            pointer-events: none;
+            width: calc(100% - 40px);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card {
+            background: var(--ui-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 16px;
+            pointer-events: auto;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            background: linear-gradient(90deg, #00f2ff, #7000ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            opacity: 0.6;
+            font-size: 0.8rem;
+        }
+
+        .hud {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        .stat-box {
+            background: var(--ui-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 12px;
+            min-width: 120px;
+        }
+
+        .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: black;
+            border-color: var(--accent);
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: black;
+            font-weight: 600;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading" class="loading-screen">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; opacity: 0.6;">Summoning Nature & Train...</p>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="overlay">
+        <div class="header card">
+            <h1>3D NATURE VOYAGE</h1>
+            <p>Durable Door Oracle | Antigravity Sky</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="camera-btn" onclick="toggleCamera()">🎥 Toggle View</button>
+        <button id="start-btn" class="primary" onclick="toggleAnimation()">🚀 START VOYAGE</button>
+        <button onclick="location.reload()">🔄 RESET</button>
+        <button onclick="location.href='index.html'">🔙 2D Map</button>
+    </div>
+
+    <div class="hud">
+        <div class="stat-box">
+            <div class="label">Location</div>
+            <div id="hud-loc" class="value">Stationary</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Speed</div>
+            <div id="hud-speed" class="value">0 km/h</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Battery</div>
+            <div id="hud-batt" class="value">--%</div>
+        </div>
+    </div>
+
+    <!-- Three.js and Libraries -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- Configuration & State ---
+        let scene, camera, renderer, controls;
+        let train, particles;
+        let pathPoints = [];
+        let csvData = [];
+        let currentIndex = 0;
+        let isAnimating = false;
+        let cameraMode = 'chase'; // 'chase' or 'orbit'
+
+        const SCALE = 2000; // Scaling GPS to 3D units
+        const TRAIN_SPEED = 2; // Steps per frame
+
+        // --- Initialized App ---
+        init();
+
+        function init() {
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x05070a);
+            scene.fog = new THREE.FogExp2(0x05070a, 0.005);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10, 20);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const moonLight = new THREE.DirectionalLight(0x4cc9f0, 1.2);
+            moonLight.position.set(50, 100, 50);
+            scene.add(moonLight);
+
+            // Load Data
+            loadCSV();
+
+            // Handle Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animateScene();
+        }
+
+        async function loadCSV() {
+            const res = await fetch('travel-phitsanulok.csv');
+            const csvText = await res.text();
+
+            Papa.parse(csvText, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    csvData = results.data.filter(d => d.lat && d.lon);
+                    processPath();
+                    buildEnvironment();
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading').style.display = 'none', 1000);
+                }
+            });
+        }
+
+        function processPath() {
+            // Find base coordinates to center the scene
+            const centerLat = 17.6; // Approximated center of the trip
+            const centerLon = 99.8;
+
+            pathPoints = csvData.map(d => {
+                const x = (d.lon - centerLon) * (SCALE * 1.5);
+                const z = -(d.lat - centerLat) * SCALE;
+                return new THREE.Vector3(x, 0, z);
+            });
+
+            // Draw Railway Track
+            const curve = new THREE.CatmullRomCurve3(pathPoints);
+            const tubeGeometry = new THREE.TubeGeometry(curve, 300, 0.1, 8, false);
+            const tubeMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4cc9f0,
+                emissive: 0x4cc9f0,
+                emissiveIntensity: 0.5
+            });
+            const track = new THREE.Mesh(tubeGeometry, tubeMaterial);
+            scene.add(track);
+
+            // Create Train
+            const trainGroup = new THREE.Group();
+
+            // Main Body
+            const bodyGeo = new THREE.BoxGeometry(0.8, 0.6, 2);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            trainGroup.add(body);
+
+            // Glowing Windows
+            const winGeo = new THREE.BoxGeometry(0.85, 0.1, 1.5);
+            const winMat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 2 });
+            const win = new THREE.Mesh(winGeo, winMat);
+            win.position.y = 0.1;
+            trainGroup.add(win);
+
+            // Headlight
+            const light = new THREE.PointLight(0xffffff, 5, 10);
+            light.position.set(0, 0, 1.1);
+            trainGroup.add(light);
+
+            train = trainGroup;
+            scene.add(train);
+
+            // Set initial position
+            train.position.copy(pathPoints[0]);
+        }
+
+        function buildEnvironment() {
+            // Soil/Ground Texture (Procedural Plane)
+            const groundGeo = new THREE.PlaneGeometry(500, 500, 32, 32);
+            const groundMat = new THREE.MeshStandardMaterial({
+                color: 0x1a120b, // Dark Soil
+                roughness: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.5;
+            scene.add(ground);
+
+            // SCATTER NATURE: Trees and Mountains
+            const treeGeo = new THREE.ConeGeometry(0.5, 2, 8);
+            const treeMat = new THREE.MeshStandardMaterial({ color: 0x0b2410 });
+
+            const mountainGeo = new THREE.ConeGeometry(10, 20, 4);
+            const mountainMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+
+            for (let i = 0; i < 500; i++) {
+                // Random position
+                const rx = (Math.random() - 0.5) * 400;
+                const rz = (Math.random() - 0.5) * 400;
+
+                // Avoid too close to track center
+                if (Math.abs(rx) < 5 && Math.abs(rz) < 10) continue;
+
+                if (Math.random() > 0.05) {
+                    const tree = new THREE.Mesh(treeGeo, treeMat);
+                    tree.position.set(rx, 0.5, rz);
+                    tree.scale.setScalar(0.5 + Math.random());
+                    scene.add(tree);
+                } else {
+                    const mtn = new THREE.Mesh(mountainGeo, mountainMat);
+                    mtn.position.set(rx, 5, rz);
+                    mtn.rotation.y = Math.random() * Math.PI;
+                    scene.add(mtn);
+                }
+            }
+
+            // Simple Bridge Simulation
+            for (let i = 10; i < pathPoints.length - 10; i += 50) {
+                const p = pathPoints[i];
+                const bridgeGeo = new THREE.BoxGeometry(3, 0.2, 5);
+                const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+                const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
+                bridge.position.copy(p);
+                bridge.position.y = -0.1;
+                scene.add(bridge);
+            }
+        }
+
+        function animateScene() {
+            requestAnimationFrame(animateScene);
+
+            if (isAnimating && pathPoints.length > 0) {
+                currentIndex = (currentIndex + TRAIN_SPEED) % pathPoints.length;
+                const targetPos = pathPoints[currentIndex];
+
+                // Move Train
+                train.position.copy(targetPos);
+
+                // Look Ahead
+                const nextPoint = pathPoints[(currentIndex + 2) % pathPoints.length];
+                train.lookAt(nextPoint);
+
+                // Update HUD
+                const data = csvData[currentIndex];
+                document.getElementById('hud-loc').innerText = data.locality || 'Northern Track';
+                document.getElementById('hud-speed').innerText = '200 km/h';
+                document.getElementById('hud-batt').innerText = data.battery + '%';
+
+                // Camera Modes
+                if (cameraMode === 'chase') {
+                    const offset = new THREE.Vector3(0, 5, -10);
+                    offset.applyQuaternion(train.quaternion);
+                    const camPos = train.position.clone().add(offset);
+                    camera.position.lerp(camPos, 0.1);
+                    camera.lookAt(train.position);
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // --- Global Control Functions ---
+        window.toggleAnimation = () => {
+            isAnimating = !isAnimating;
+            const btn = document.getElementById('start-btn');
+            btn.innerText = isAnimating ? '⏸ PAUSE VOYAGE' : '🚀 RESUME VOYAGE';
+            btn.classList.toggle('primary', !isAnimating);
+        };
+
+        window.toggleCamera = () => {
+            cameraMode = cameraMode === 'chase' ? 'orbit' : 'chase';
+            controls.enabled = (cameraMode === 'orbit');
+            document.getElementById('camera-btn').innerText =
+                cameraMode === 'chase' ? '🎥 Chase View' : '🌐 Orbit View';
+        };
+
+    </script>
+</body>
+
+</html>
