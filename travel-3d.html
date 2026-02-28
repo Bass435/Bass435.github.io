@@ -213,6 +213,7 @@
 
     <div class="controls">
         <button id="camera-btn" onclick="toggleCamera()">🎥 Free View (Orbit)</button>
+        <button id="find-train-btn" onclick="goToTrain()">🎯 Go to Train</button>
         <button id="start-btn" class="primary" onclick="toggleAnimation()">🚀 START VOYAGE</button>
         <button onclick="location.reload()">🔄 RESET</button>
         <button onclick="location.href='index.html'">🔙 2D Map</button>
@@ -263,6 +264,7 @@
 
         const SCALE = 2500;
         const TRAIN_SPEED_VAL = 1.5; // Adjusted for 150km/h feel
+        const WASD_SPEED = 2.0; // Increased speed for user
 
         const keyStates = { KeyW: false, KeyA: false, KeyS: false, KeyD: false };
 
@@ -315,6 +317,11 @@
                     csvData = results.data.filter(d => d.lat && d.lon);
                     processPath();
                     buildEnvironment();
+                    // Initial camera focus
+                    if (pathPoints.length > 0) {
+                        camera.position.set(pathPoints[0].x, 20, pathPoints[0].z + 40);
+                        controls.target.copy(pathPoints[0]);
+                    }
                     document.getElementById('loading').style.opacity = '0';
                     setTimeout(() => document.getElementById('loading').style.display = 'none', 1000);
                 }
@@ -332,15 +339,23 @@
             });
 
             const curve = new THREE.CatmullRomCurve3(pathPoints);
-            const tubeGeo = new THREE.TubeGeometry(curve, 400, 0.2, 8, false);
-            const tubeMat = new THREE.MeshStandardMaterial({ color: 0x495057 });
+            const tubeGeo = new THREE.TubeGeometry(curve, 400, 0.4, 8, false); // Thicker tracks
+            const tubeMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff, // Bright track
+                emissive: 0x495057,
+                emissiveIntensity: 0.5
+            });
             scene.add(new THREE.Mesh(tubeGeo, tubeMat));
 
             // Train Model (Upgrade)
             train = new THREE.Group();
 
-            const engineGeo = new THREE.BoxGeometry(1.2, 0.8, 3);
-            const engineMat = new THREE.MeshStandardMaterial({ color: 0xff922b });
+            const engineGeo = new THREE.BoxGeometry(2, 1.2, 5); // Bigger train
+            const engineMat = new THREE.MeshStandardMaterial({
+                color: 0xff922b,
+                emissive: 0xff922b,
+                emissiveIntensity: 0.2
+            });
             const engine = new THREE.Mesh(engineGeo, engineMat);
             train.add(engine);
 
@@ -437,7 +452,7 @@
             }
 
             // Keyboard Movement (WASD)
-            const moveSpeed = 0.5;
+            const moveSpeed = WASD_SPEED;
             if (keyStates.KeyW) camera.translateZ(-moveSpeed);
             if (keyStates.KeyS) camera.translateZ(moveSpeed);
             if (keyStates.KeyA) camera.translateX(-moveSpeed);
@@ -467,6 +482,18 @@
                 cameraMode === 'chase' ? '🎥 Free View (Orbit)' : '🌐 Chase View';
             document.getElementById('view-mode-indicator').innerText =
                 cameraMode === 'chase' ? 'Chase View' : 'Orbit/Free View';
+        };
+
+        window.goToTrain = () => {
+            if (!train) return;
+            // Jump camera to train
+            camera.position.set(train.position.x, train.position.y + 20, train.position.z + 40);
+            controls.target.copy(train.position);
+            // Default to orbit if we jump
+            cameraMode = 'orbit';
+            controls.enabled = true;
+            document.getElementById('view-mode-indicator').innerText = 'Orbit/Free View';
+            document.getElementById('camera-btn').innerText = '🌐 Chase View';
         };
     </script>
 </body>
