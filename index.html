@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Workshop: Antigravity Sky | Durable Door Oracle</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Sarabun:wght@300;400;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0a0c10;
+            --accent: #4cc9f0;
+            --accent-glow: rgba(76, 201, 240, 0.4);
+            --card-bg: rgba(22, 27, 34, 0.85);
+            --text: #f0f6fc;
+            --font-main: 'Outfit', 'Sarabun', sans-serif;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: var(--bg-dark);
+            color: var(--text);
+            font-family: var(--font-main);
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-dark);
+        }
+
+        /* Overlay UI */
+        .overlay {
+            position: absolute;
+            z-index: 1000;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header {
+            padding: 20px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            pointer-events: auto;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            opacity: 0.7;
+            font-size: 0.8rem;
+        }
+
+        .controls {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .btn {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            font-family: inherit;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--accent-glow);
+            transform: scale(1.05);
+        }
+
+        .footer {
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: auto;
+        }
+
+        .stats {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .oracle-branding {
+            text-align: right;
+            opacity: 0.6;
+            font-size: 0.75rem;
+        }
+
+        /* Leaflet Overrides */
+        .leaflet-container {
+            font-family: inherit;
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: var(--card-bg);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .leaflet-popup-tip {
+            background: var(--card-bg);
+        }
+
+        /* Train Animation Glow */
+        .train-marker {
+            filter: drop-shadow(0 0 5px var(--accent));
+            font-size: 24px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="overlay">
+        <div class="header">
+            <h1>GPS VOYAGE: CNX → PHS</h1>
+            <p>Antigravity Sky Expedition | Durable Door Oracle</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="flyToCity('cnx')">📍 Chiang Mai</button>
+            <button class="btn" onclick="flyToCity('lp')">📍 Lampang</button>
+            <button class="btn" onclick="flyToCity('ud')">📍 Uttaradit</button>
+            <button class="btn" onclick="flyToCity('phs')">📍 Phitsanulok</button>
+            <div style="height: 10px;"></div>
+            <button class="btn" style="background: var(--accent); color: #000;" onclick="startVoyage()">🚀 Start
+                Animation</button>
+            <button class="btn" onclick="resetVoyage()">🔄 Reset</button>
+        </div>
+
+        <div class="footer">
+            <div class="stats" id="current-info">
+                <div class="stats-item"><span>Status:</span> <span id="status-val">Waiting...</span></div>
+                <div class="stats-item"><span>Location:</span> <span id="loc-val">-</span></div>
+                <div class="stats-item"><span>Battery:</span> <span id="batt-val">-</span></div>
+                <div class="stats-item"><span>Speed:</span> <span style="color:var(--accent)">200 km/h
+                        (Simulated)</span></div>
+            </div>
+            <div class="oracle-branding">
+                Designed by 🔮 <b>Durable Door</b><br>
+                One Soul, Many Bodies | Oracle Family
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <script>
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([17.8, 99.8], 8);
+
+        // Dark Theme Layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        let pathData = [];
+        let polyline;
+        let animatedMarker;
+        let animationFrame;
+        let currentIndex = 0;
+
+        // Fetch and Parse CSV
+        fetch('travel-phitsanulok.csv')
+            .then(res => res.text())
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        pathData = results.data.filter(d => d.lat && d.lon);
+                        renderPath();
+                    }
+                });
+            });
+
+        function renderPath() {
+            const latlngs = pathData.map(d => [d.lat, d.lon]);
+
+            // Draw Main Path Glower
+            L.polyline(latlngs, {
+                color: '#4361ee',
+                weight: 5,
+                opacity: 0.3
+            }).addTo(map);
+
+            polyline = L.polyline(latlngs, {
+                color: '#4cc9f0',
+                weight: 2,
+                opacity: 0.8
+            }).addTo(map);
+
+            // Add Markers for Major Stops
+            const majorStops = [0, Math.floor(pathData.length / 2), pathData.length - 1];
+            majorStops.forEach(idx => {
+                const p = pathData[idx];
+                L.circleMarker([p.lat, p.lon], {
+                    radius: 5,
+                    color: '#4cc9f0',
+                    fillOpacity: 1
+                }).addTo(map).bindPopup(`
+                    <b>${p.locality || 'Expedition Point'}</b><br>
+                    ${p.address || ''}<br>
+                    🔋 Battery: ${p.battery}% (${p.charging})<br>
+                    🕒 Time: ${p.updated}
+                `);
+            });
+
+            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+        }
+
+        const cityCoords = {
+            cnx: [18.788, 98.985],
+            lp: [18.281, 99.469],
+            ud: [17.620, 100.097],
+            phs: [16.817, 100.258]
+        };
+
+        function flyToCity(city) {
+            map.flyTo(cityCoords[city], 13, {
+                duration: 2
+            });
+        }
+
+        function updateUI(data) {
+            document.getElementById('status-val').innerText = 'Voyaging...';
+            document.getElementById('loc-val').innerText = data.locality || data.address.split(',')[0];
+            document.getElementById('batt-val').innerText = data.battery + '% (' + data.charging + ')';
+        }
+
+        function startVoyage() {
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            if (!animatedMarker) {
+                const icon = L.divIcon({
+                    className: 'train-marker',
+                    html: '🚄',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                animatedMarker = L.marker([pathData[0].lat, pathData[0].lon], { icon: icon }).addTo(map);
+            }
+
+            currentIndex = 0;
+            animate();
+        }
+
+        function animate() {
+            if (currentIndex >= pathData.length) {
+                document.getElementById('status-val').innerText = 'Arrived';
+                return;
+            }
+
+            const p = pathData[currentIndex];
+            animatedMarker.setLatLng([p.lat, p.lon]);
+            updateUI(p);
+
+            // Fly-along logic
+            if (currentIndex % 10 === 0) {
+                map.panTo([p.lat, p.lon], { animate: true });
+            }
+
+            // High Speed Simulation: Skip rows or fast frame
+            currentIndex += 2;
+
+            setTimeout(() => {
+                animationFrame = requestAnimationFrame(animate);
+            }, 50); // Control apparent speed
+        }
+
+        function resetVoyage() {
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            if (animatedMarker) map.removeLayer(animatedMarker);
+            animatedMarker = null;
+            currentIndex = 0;
+            document.getElementById('status-val').innerText = 'Waiting...';
+            map.fitBounds(polyline.getBounds());
+        }
+    </script>
+</body>
+
+</html>
