@@ -57,13 +57,20 @@
         }
 
         .glass-panel {
-            background: var(--glass);
-            backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
             padding: 30px;
             pointer-events: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .glass-panel:hover {
+            background: rgba(15, 15, 15, 0.5);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
         }
 
         /* Top Bar */
@@ -466,14 +473,26 @@
                 const mat = new THREE.MeshStandardMaterial({
                     color: 0x00f2ff,
                     emissive: 0x00f2ff,
-                    emissiveIntensity: 0.5,
+                    emissiveIntensity: 0.8,
                     transparent: true,
-                    opacity: 0.8
+                    opacity: 0.9,
+                    metalness: 0.8,
+                    roughness: 0.2
                 });
                 const cube = new THREE.Mesh(geo, mat);
-                cube.position.x = (i - 1.5) * 10;
+                cube.position.x = (i - 1.5) * 12;
                 scene.add(cube);
                 bars.push(cube);
+
+                // Add a glow ring under each bar
+                const ringGeo = new THREE.TorusGeometry(3, 0.05, 16, 100);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.3 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.y = -4.9;
+                ring.position.x = cube.position.x;
+                scene.add(ring);
+                cubes.push(ring); // Store rings in cubes array for animation
             }
         }
 
@@ -490,8 +509,14 @@
             });
 
             // Adjust particle density based on PM2.5
-            particleMaterial.opacity = Math.min(0.8, (data.pm25 || 0) / 100);
+            particleMaterial.opacity = Math.min(0.8, (data.pm25 || 0) / 80);
             particleMaterial.color.lerp(color, 0.05);
+
+            // Update rings color
+            cubes.forEach(ring => {
+                ring.material.color.lerp(color, 0.1);
+                ring.material.opacity = 0.2 + (Math.sin(Date.now() * 0.002) * 0.1);
+            });
         }
 
         function connectMQTT() {
